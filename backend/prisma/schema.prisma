@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,22 +8,35 @@ datasource db {
 }
 
 model User {
-  id       String   @id @default(uuid())
-  username String   @unique
-  email    String   @unique
-  password String
-  posts    Post[]
-
-  Comment Comment[]
+  id             String    @id @default(uuid())
+  username       String    @unique
+  email          String    @unique
+  password       String
+  name           String
+  bio            String
+  phone_number   String
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+  dp_url         String
+  gender         String
+  posts          Post[]
+  comments       Comment[]
+  liked_posts    Post[]    @relation("LikedPosts")
+  shared_posts   Post[]    @relation("SharedPosts")
+  saved_posts    Post[]    @relation("SavedPosts")
+  liked_comments Comment[] @relation("LikedComments")
 }
 
 model Post {
-  id        String    @id @default(uuid())
-  ownerId   String
-  caption   String
-  timestamp DateTime  @default(now())
-  owner     User      @relation(fields: [ownerId], references: [id])
-  comments  Comment[]
+  id         String    @id @default(uuid())
+  ownerId    String
+  caption    String
+  timestamp  DateTime  @default(now())
+  owner      User      @relation(fields: [ownerId], references: [id])
+  comments   Comment[]
+  liked_by   User[]    @relation("LikedPosts")
+  shared_by  User[]    @relation("SharedPosts")
+  saved_by   User[]    @relation("SavedPosts")
 }
 
 model Comment {
@@ -40,4 +47,5 @@ model Comment {
   timestamp DateTime  @default(now())
   author    User      @relation(fields: [authorId], references: [id])
   post      Post      @relation(fields: [postId], references: [id])
+  liked_by  User[]    @relation("LikedComments")
 }
