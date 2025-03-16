@@ -43,3 +43,14 @@ export const createPost = async (req: Request, res: Response) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+
+export const getPostByUserId = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const posts = await prisma.post.findMany({ where: { ownerId: userId } });
+
+    return res.status(200).json(posts);
+  } catch (error) {
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
