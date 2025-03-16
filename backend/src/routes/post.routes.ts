@@ -41,12 +41,47 @@ const router = Router();
  *         description: Internal server error
  */
 router.get(
-    "/",
-    (req: Request, res: Response, next: NextFunction) => {
-      authenticate(req, res, next);
-    },
-    async (req: Request, res: Response) => {
-      await getAllPostsByUser(req, res);
-    }
-  );
-  
+  "/",
+  (req: Request, res: Response, next: NextFunction) => {
+    authenticate(req, res, next);
+  },
+  async (req: Request, res: Response) => {
+    await getAllPostsByUser(req, res);
+  }
+);
+
+/**
+ * @swagger
+ * /post:
+ *   post:
+ *     summary: Create a new post
+ *     tags: [Post]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               caption:
+ *                 type: string
+ *               media_url:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Post created successfully
+ *       400:
+ *         description: Bad request
+ *       500:
+ *         description: Internal server error
+ */
+
+router.post(
+  "/",
+  (req: Request, res: Response, next: NextFunction) => {
+    authenticate(req, res, next);
+  },
+  async (req: Request, res: Response) => {
+    await createPost(req, res);
+  }
+)

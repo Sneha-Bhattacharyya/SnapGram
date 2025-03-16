@@ -61,7 +61,6 @@ router.get(
   }
 );
 
-
 /**
  * @swagger
  * /user:
@@ -81,7 +80,7 @@ router.get(
  *              id:
  *               type: integer
  *              username:
- *               type: string 
+ *               type: string
  *              email:
  *               type: string
  *              name:
@@ -92,7 +91,7 @@ router.get(
  *               type: string
  *              dp_url:
  *               type: string
- * 
+ *
  *       500:
  *         description: Internal server error
  */

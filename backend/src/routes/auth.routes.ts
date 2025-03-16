@@ -68,8 +68,7 @@ router.post("/register", register);
  *         description: Internal server error
  */
 router.post("/login", async (req, res) => {
-    await login(req, res);
+  await login(req, res);
 });
-
 
 export default router;
