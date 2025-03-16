@@ -27,8 +27,12 @@ export const login = async (req: Request, res: Response) => {
         const { email, password } = req.body;
         const user = await prisma.user.findUnique({ where: { email } });
 
-        if (!user || !(await bcrypt.compare(password, user.password))) {
+        if(user && !(await bcrypt.compare(password, user.password))) {
             return res.status(401).json({ error: "Invalid credentials" });
+        }
+
+        else if (!user){
+            return res.status(404).json({ error: "User not found" });
         }
 
         const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "30D" });
