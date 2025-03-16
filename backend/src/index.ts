@@ -3,10 +3,12 @@ import cors from "cors";
 import dotenv from "dotenv";
 import authRoutes from "./routes/auth.routes";
 import userRoutes from "./routes/user.routes";
+import { setupSwagger } from "./utils/swagger";
 dotenv.config();
 
 const app = express();
 app.use(express.json());
+setupSwagger(app);
 app.use(cors());
 
 app.use("/auth", authRoutes);

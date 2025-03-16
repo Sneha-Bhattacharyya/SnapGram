@@ -32,6 +32,7 @@ model Post {
   ownerId    String
   caption    String
   timestamp  DateTime  @default(now())
+  media_url  String
   owner      User      @relation(fields: [ownerId], references: [id])
   comments   Comment[]
   liked_by   User[]    @relation("LikedPosts")
