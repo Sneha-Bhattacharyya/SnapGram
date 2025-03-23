@@ -134,3 +134,80 @@ router.get(
     await getPostByUserId(req, res);
   }
 );
+
+/**
+ * @swagger
+ * /post/{postId}:
+ *   put:
+ *     summary: Update a post by post id
+ *     tags: [Post]
+ *     parameters:
+ *       - in: path
+ *         name: postId
+ *         required: true
+ *         description: Post ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               caption:
+ *                 type: string
+ *               media_url:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Post updated successfully
+ *       400:
+ *         description: Bad request
+ *       500:
+ *         description: Internal server error
+ */
+
+router.put(
+  "/:postId",
+  (req: Request, res: Response, next: NextFunction) => {
+    authenticate(req, res, next);
+  },
+  async (req: Request, res: Response) => {
+    await getPostByUserId(req, res);
+  }
+);
+
+/**
+ * @swagger
+ * /post/{postId}:
+ *   delete:
+ *     summary: Delete a post by post id
+ *     tags: [Post]
+ *     parameters:
+ *       - in: path
+ *         name: postId
+ *         required: true
+ *         description: Post ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Post deleted successfully
+ *       500:
+ *         description: Internal server error
+ */
+
+router.delete(
+  "/:postId",
+  (req: Request, res: Response, next: NextFunction) => {
+    authenticate(req, res, next);
+  },
+  async (req: Request, res: Response) => {
+    await getPostByUserId(req, res);
+  }
+);
+
+export default router;

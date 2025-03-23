@@ -54,3 +54,48 @@ export const getPostByUserId = async (req: Request, res: Response) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 }
+
+export const deletePost = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const token = authHeader.split(" ")[1];
+    const decodedToken: any = jwt.verify(token, JWT_SECRET);
+    const owner_id = decodedToken.id;
+
+    const { id } = req.params;
+    const post = await prisma.post.delete({ where: { id, ownerId: owner_id } });
+
+    return res.status(200).json(post);
+  } catch (error) {
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export const updatePost = async (req: Request, res: Response) => {
+  
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const token = authHeader.split(" ")[1];
+    const decodedToken: any = jwt.verify(token, JWT_SECRET);
+    const owner_id = decodedToken.id;
+    const { id } = req.params;
+
+    const { caption, media_url } = req.body;
+    const post = await prisma.post.update({
+      where: { id:id, ownerId: owner_id },
+      data: { caption, media_url },
+    });
+
+    return res.status(200).json(post);
+  } catch (error) {
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
