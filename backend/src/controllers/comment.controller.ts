@@ -73,3 +73,16 @@ export const deleteComment = async (req: Request, res: Response) => {
       return res.status(500).json({ error: "Internal server error" });
     }
   }
+
+  export const replyComment = async (req: Request, res: Response) => {
+    try {
+      const { postId, body, authorId, parentCommentId } = req.body;
+      const comment = await prisma.comment.create({
+        data: { body, postId, authorId, parentCommentId },
+      });
+  
+      return res.status(201).json(comment);
+    } catch (error) {
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  }
