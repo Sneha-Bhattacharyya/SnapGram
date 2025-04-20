@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { register, login } from "../controllers/auth.controller";
+import { register, login, getCurrentUser } from "../controllers/auth.controller";
 
 const router = Router();
 
@@ -69,6 +69,10 @@ router.post("/register", register);
  */
 router.post("/login", async (req, res) => {
   await login(req, res);
+});
+
+router.get("/me", async (req, res) => {
+  await getCurrentUser(req, res);
 });
 
 export default router;
