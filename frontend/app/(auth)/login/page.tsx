@@ -1,95 +1,123 @@
 'use client'
-import React from "react";
+import * as z from "zod";
+import {useForm} from "react-hook-form";
+import {useRouter} from "next/navigation";
+import React, {useState} from "react";
 import Image from "next/image";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import {toast} from "sonner"
+import {zodResolver} from "@hookform/resolvers/zod";
+
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
+import {Input} from "@/components/ui/input";
+import {Button} from "@/components/ui/button";
+import {AuthResponse} from "@/types";
+import Loader from "@/components/shared/Loader";
+import Link from "next/link";
+import axios from '@/utils/axiosInstance';
+
 const Login = () => {
-  const [emailOrUsername, setEmailOrUsername] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const url = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
   const router = useRouter();
-const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent the default form submission behavior
-    if (emailOrUsername === "" || password === "") {
-        alert("Please enter Username or Password");
-        return;
-    }
+    const SigninValidation = z.object({
+      login: z.string().min(2, { message: "Login must be at least 2 characters." }).refine(
+        (value) => /\S+@\S+\.\S+/.test(value) || value.length >= 2,
+        { message: "Login must be a valid email or at least 2 characters as a username." }
+      ),
+      password: z.string().min(8, { message: "Password must be at least 8 characters." }),
+    });
+    const form = useForm<z.infer<typeof SigninValidation>>({
+        resolver: zodResolver(SigninValidation),
+        defaultValues: {
+            login: "",
+            password: "",
+        },
+    });
+    const [isLoading, setIsLoading] = useState(false);
+const handleSignIn = async (user: z.infer<typeof SigninValidation>) => {
     try {
-        const response = await fetch(`${url}/auth/login`, {
-            method: "POST", // Specify the HTTP method
-            headers: {
-                "Content-Type": "application/json", // Inform the server you're sending JSON
-            },
-            body: JSON.stringify({
-                email: emailOrUsername,
-                password: password,
-            }),
+        setIsLoading(true);
+        const response = await axios.post('/auth/login', {
+            login: user.login,
+            password: user.password,
         });
-
-        if (!response.ok) {
-            throw new Error("Failed to sign in");
-        }
-
-        const data = await response.json(); // Parse the JSON response
+        const data: AuthResponse = response.data as AuthResponse; // Extract the response data
         console.log(data); // Handle the response data
-        localStorage.setItem("accessToken", data.token)
-        router.push("/")
+        localStorage.setItem("accessToken", data.token);
+        form.reset();
+        toast("Login successful!");
+        router.push("/");
     } catch (error) {
+        toast("Something went wrong. Please check your credentials.");
         console.error("Error during sign-in:", error);
+    } finally {
+        setIsLoading(false);
     }
 };
 
   return (
-    <div className="flex items-center justify-center h-screen w-full bg-[#171626] ">
-      <div className="bg-[#323232] p-6 rounded shadow-md w-96 flex flex-col gap-3 items-center justify-center">
-        <Image src={"/snap_logo.png"} alt="logo" height={200} width={100} />
-        <span className="font-bold text-[16px]">Sign in to SnapGram</span>
-        <span className="font-light text-[13px] text-gray-400">
-          Welcome back! Please sign in to continue
-        </span>
-        <form className="w-full">
-          <div className="mb-4">
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium"
-            >
-              Email address or username
-            </label>
-            <input
-              type="text"
-              id="email"
-              className="mt-1 block w-full p-1 bg-[#454545] rounded-lg focus:outline-none"
-              onChange={(e) => setEmailOrUsername(e.target.value)}
-              value={emailOrUsername}
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium"
-            >
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              className="mt-1 block w-full p-1 bg-[#454545] rounded-lg focus:outline-none"
-              onChange={(e) => setPassword(e.target.value)}
-              value={password}
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-blue-500 text-white py-2 rounded-lg cursor-pointer hover:bg-blue-400 transition-all delay-200"
-            onClick={(e)=>handleSignIn(e)}
-          >
-            Login
-          </button>
-        </form>
+      <div className="flex flex-col items-center justify-center h-screen w-1/2 ">
+          <Form {...form}>
+              <div className="sm:w-420 flex-center flex-col">
+                  <Image src="/images/logo.svg" height={100} width={300} alt="logo" />
+
+                  <h2 className="h3-bold md:h2-bold pt-5 sm:pt-12">
+                      Log in to your account
+                  </h2>
+                  <p className="text-light-3 small-medium md:base-regular mt-2">
+                      Welcome back! Please enter your details.
+                  </p>
+                  <form
+                      onSubmit={form.handleSubmit(handleSignIn)}
+                      className="flex flex-col gap-5 w-full mt-4">
+                      <FormField
+                          control={form.control}
+                          name="login"
+                          render={({ field }) => (
+                              <FormItem>
+                                  <FormLabel className="shad-form_label">Email</FormLabel>
+                                  <FormControl>
+                                      <Input type="text" className="shad-input" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                              </FormItem>
+                          )}
+                      />
+
+                      <FormField
+                          control={form.control}
+                          name="password"
+                          render={({ field }) => (
+                              <FormItem>
+                                  <FormLabel className="shad-form_label">Password</FormLabel>
+                                  <FormControl>
+                                      <Input type="password" className="shad-input" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                              </FormItem>
+                          )}
+                      />
+
+                      <Button type="submit" className="shad-button_primary">
+                          {isLoading ? (
+                              <div className="flex-center gap-2">
+                                  <Loader /> Loading...
+                              </div>
+                          ) : (
+                              "Log in"
+                          )}
+                      </Button>
+
+                      <p className="text-small-regular text-light-2 text-center mt-2">
+                          Don&apos;t have an account?
+                          <Link
+                              href="/signup"
+                              className="text-primary-500 text-small-semibold ml-1">
+                              Sign up
+                          </Link>
+                      </p>
+                  </form>
+              </div>
+          </Form>
       </div>
-    </div>
   );
 };
 

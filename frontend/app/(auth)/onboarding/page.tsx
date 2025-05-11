@@ -1,55 +1,74 @@
-"use client";
-import { useUser } from "@/providers/AuthProvider";
-import axios from "@/utils/axiosInstance";
+'use client'
+import * as z from "zod";
+import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import React, { useState, useEffect } from "react";
+import React, {useEffect } from "react";
+import Image from "next/image";
+import { toast } from "sonner"
+import { zodResolver } from "@hookform/resolvers/zod";
+import axios from '@/utils/axiosInstance';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import Loader  from "@/components/shared/Loader";
+import Link from "next/link";
+import { useUser } from "@/providers/AuthProvider";
+import {Textarea} from "@/components/ui/textarea";
+const onboardingValidation = z.object({
+    name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+    bio: z.string().min(10, { message: "Bio must be at least 10 characters." }),
+    dp_url: z.string().url().optional(),
+    phone_number: z.string()
+        .refine((value) => {
+            if (!value) return true; // Allow empty value
+            return /^\+?[1-9]\d{1,14}$/.test(value);
+        }, { message: "Invalid phone number format." }).optional(),
+    gender: z.enum(["male", "female", "prefer not to say"]),
+})
 
 const Onboarding = () => {
   const router = useRouter();
   const userContext = useUser(); // always called
   const user = userContext?.user ?? null;
   const loading = userContext?.loading ?? true;
-
-  const [bio, setBio] = useState("");
-  const [name, setName] = useState("");
-  const [gender, setGender] = useState("");
-  const [dp_url, setDpUrl] = useState("");
-  const [phone_number, setPhoneNumber] = useState("");
-
+  const form = useForm<z.infer<typeof onboardingValidation>>({
+    resolver: zodResolver(onboardingValidation),
+    defaultValues: {
+        name: "",
+        bio: "",
+        dp_url: "https://www.example.com/dp.png",
+        phone_number: "",
+        gender: "prefer not to say",
+    },
+  });
   useEffect(() => {
     console.log("User in useEffect:", user); // 👀
   
     if (user) {
-      setBio(user.bio || "");
-      setName(user.name || "");
-      setDpUrl(user.dp_url || "");
-      setPhoneNumber(user.phone_number || "");
-      setGender(user.gender || "");
+        console.log("User found:", user);
+        form.setValue("name", user.name || "");
+        form.setValue("bio", user.bio || "");
+        form.setValue("dp_url", user.dp_url || "https://www.example.com/dp.png",);
+        form.setValue("phone_number", user.phone_number || "");
+        form.setValue("gender", (["male", "female", "prefer not to say"]
+            .includes(user.gender) ? user.gender : "prefer not to say") as "male" | "female" | "prefer not to say");
     }
-  }, [user]);
+  }, [form, user]);
   
   if (loading) return <p>Loading user...</p>;
   if (!user) {
     console.log("User not found");
     return null;
   }
-  function resetForm() {
-    setBio("");
-    setName("");
-    setGender("");
-    setDpUrl("");
-    setPhoneNumber("");
-  }
-  const handleOnboard = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleOnboard = async (formData: z.infer<typeof onboardingValidation>) => {
     const { id } = user;
     console.log(id);
     const data = {
-      name,
-      bio,
-      gender,
-      phone_number,
-      dp_url,
+      name: formData.name,
+      bio: formData.bio,
+      gender: formData.gender,
+      phone_number: formData.phone_number,
+      dp_url: formData.dp_url,
     };
     console.log(data);
     try {
@@ -58,108 +77,112 @@ const Onboarding = () => {
           data,
         });
         if (res.status === 200) {
-          const data = await res.data;
-          alert("Onboarding successful");
+          toast("Onboarding successful");
           router.push("/");
         } else {
-          alert("Onboarding failed");
-          resetForm();
+          toast("Onboarding failed");
+          form.reset();
         }
     } catch (error) {
       console.error("Error during onboarding:", error);
-      alert("Onboarding failed");
-      resetForm();
+      toast("Onboarding failed");
+      form.reset();
     }
   };
 
   return (
-    <>
-      <div className="flex items-center justify-center h-screen w-full bg-[#171626]">
-        <div className="bg-[#323232] p-8 rounded-lg shadow-lg w-96 flex flex-col gap-4 items-center">
-          <h1 className="text-white text-xl font-bold">Onboarding</h1>
-          <p className="text-gray-400 text-sm text-center">
-            Welcome! Please fill in your details to continue
-          </p>
-          <form
-            onSubmit={handleOnboard}
-            className="w-full flex flex-col gap-4 text-white"
-          >
-            <div className="flex flex-col gap-1">
-              <label htmlFor="name" className="text-sm font-medium">
-                Name:
-              </label>
-              <input
-                type="text"
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                className="p-2 rounded bg-[#1f1e2e] border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#6c63ff]"
+      <div className="flex flex-col items-center justify-center h-screen w-1/2 ">
+        <Form {...form}>
+          <div className="sm:w-420 flex-center flex-col">
+            <Image src="/images/logo.svg" height={100} width={300} alt="logo" />
+
+            <h2 className="h3-bold md:h2-bold pt-5 sm:pt-12">
+              Complete your profile
+            </h2>
+            <p className="text-light-3 small-medium md:base-regular mt-2">
+              Please complete your profile to get started.
+            </p>
+            <form
+                onSubmit={form.handleSubmit(handleOnboard)}
+                className="flex flex-col gap-5 w-full mt-4">
+              <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="shad-form_label">Name</FormLabel>
+                        <FormControl>
+                          <Input type="text" className="shad-input" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                  )}
               />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label htmlFor="bio" className="text-sm font-medium">
-                Bio:
-              </label>
-              <textarea
-                id="bio"
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                required
-                className="p-2 rounded bg-[#1f1e2e] border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#6c63ff]"
+
+              <FormField
+                  control={form.control}
+                  name="bio"
+                  render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="shad-form_label">Bio</FormLabel>
+                        <FormControl>
+                          <Textarea className="shad-input" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                  )}
               />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label htmlFor="gender" className="text-sm font-medium">
-                Gender:
-              </label>
-              <select
-                id="gender"
-                value={gender}
-                onChange={(e) => setGender(e.target.value)}
-                required
-                className="p-2 rounded bg-[#1f1e2e] border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#6c63ff]"
-              >
-                <option value="">Select</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            <div className="flex flex-col gap-1">
-              <label htmlFor="dp_url" className="text-sm font-medium">
-                Profile Picture URL:
-              </label>
-              <input
-                type="url"
-                id="dp_url"
-                value={dp_url}
-                onChange={(e) => setDpUrl(e.target.value)}
-                className="p-2 rounded bg-[#1f1e2e] border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#6c63ff]"
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label htmlFor="phone_number" className="text-sm font-medium">
-                Phone Number:
-              </label>
-              <input
-                type="tel"
-                id="phone_number"
-                value={phone_number}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                className="p-2 rounded bg-[#1f1e2e] border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#6c63ff]"
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full py-2 mt-2 rounded bg-[#6c63ff] text-white font-semibold hover:bg-[#5a54d1] transition duration-200"
-            >
-              Submit
-            </button>
-          </form>
-        </div>
+
+                <FormField
+                    control={form.control}
+                    name="phone_number"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel className="shad-form_label">Phone Number</FormLabel>
+                            <FormControl>
+                                <Input type={'text'} className="shad-input" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="gender"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel className="shad-form_label">Gender</FormLabel>
+                            <FormControl>
+                                <Input type={'text'} className="shad-input" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+              <Button type="submit" className="shad-button_primary">
+                {loading ? (
+                    <div className="flex-center gap-2">
+                      <Loader /> Loading...
+                    </div>
+                ) : (
+                    "Complete Profile"
+                )}
+              </Button>
+
+              <p className="text-small-regular text-light-2 text-center mt-2">
+                Don&apos;t have an account?
+                <Link
+                    href="/signup"
+                    className="text-primary-500 text-small-semibold ml-1">
+                  Sign up
+                </Link>
+              </p>
+            </form>
+          </div>
+        </Form>
       </div>
-    </>
   );
 };
 
