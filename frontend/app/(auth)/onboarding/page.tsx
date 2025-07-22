@@ -1,19 +1,20 @@
 'use client'
 import * as z from "zod";
-import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
-import React, {useEffect } from "react";
+import {useForm} from "react-hook-form";
+import {useRouter} from "next/navigation";
+import React, {useEffect} from "react";
 import Image from "next/image";
-import { toast } from "sonner"
-import { zodResolver } from "@hookform/resolvers/zod";
+import {toast} from "sonner"
+import {zodResolver} from "@hookform/resolvers/zod";
 import axios from '@/utils/axiosInstance';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import Loader  from "@/components/shared/Loader";
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
+import {Input} from "@/components/ui/input";
+import {Button} from "@/components/ui/button";
+import Loader from "@/components/shared/Loader";
 import Link from "next/link";
-import { useUser } from "@/providers/AuthProvider";
+import {useUser} from "@/providers/AuthProvider";
 import {Textarea} from "@/components/ui/textarea";
+
 const onboardingValidation = z.object({
     name: z.string().min(2, { message: "Name must be at least 2 characters." }),
     bio: z.string().min(10, { message: "Bio must be at least 10 characters." }),
@@ -36,7 +37,7 @@ const Onboarding = () => {
     defaultValues: {
         name: "",
         bio: "",
-        dp_url: "https://www.example.com/dp.png",
+        dp_url: `https://avatar.vercel.sh/default`,
         phone_number: "",
         gender: "prefer not to say",
     },
@@ -48,10 +49,12 @@ const Onboarding = () => {
         console.log("User found:", user);
         form.setValue("name", user.name || "");
         form.setValue("bio", user.bio || "");
-        form.setValue("dp_url", user.dp_url || "https://www.example.com/dp.png",);
+        form.setValue("dp_url", user.dp_url || `https://avatar.vercel.sh/${user.username}`);
         form.setValue("phone_number", user.phone_number || "");
-        form.setValue("gender", (["male", "female", "prefer not to say"]
-            .includes(user.gender) ? user.gender : "prefer not to say") as "male" | "female" | "prefer not to say");
+        if (typeof user.gender === "string") {
+            form.setValue("gender", (["male", "female", "prefer not to say"]
+                .includes(user.gender) ? user.gender : "prefer not to say") as "male" | "female" | "prefer not to say");
+        }
     }
   }, [form, user]);
   

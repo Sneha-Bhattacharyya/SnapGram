@@ -33,6 +33,7 @@ const Login = () => {
     });
     const [isLoading, setIsLoading] = useState(false);
 const handleSignIn = async (user: z.infer<typeof SigninValidation>) => {
+
     try {
         setIsLoading(true);
         const response = await axios.post('/auth/login', {
@@ -44,7 +45,7 @@ const handleSignIn = async (user: z.infer<typeof SigninValidation>) => {
         localStorage.setItem("accessToken", data.token);
         form.reset();
         toast("Login successful!");
-        router.push("/");
+        window.location.href = "/"; // Redirect to the home page
     } catch (error) {
         toast("Something went wrong. Please check your credentials.");
         console.error("Error during sign-in:", error);

@@ -38,7 +38,9 @@ const router = Router();
  *       500:
  *         description: Internal server error
  */
-router.post("/register", register);
+router.post("/register", async (req, res) => {
+  await register(req, res);
+});
 
 /**
  * @swagger
@@ -53,7 +55,7 @@ router.post("/register", register);
  *           schema:
  *             type: object
  *             properties:
- *               email:
+ *               login:
  *                 type: string
  *               password:
  *                 type: string

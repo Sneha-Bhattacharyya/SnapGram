@@ -32,14 +32,14 @@ const LeftSidebar = () => {
                     />
                 </Link>
 
-                {loading || !user?.email ? (
+                {loading || !user?.name ? (
                     <div className="h-14">
                         <Loader/>
                     </div>
                 ) : (
                     <Link href={`/profile/${user.id}`} className="flex gap-3 items-center">
                         <Image
-                            src={"/icons/profile-placeholder.svg"}
+                            src={user.dp_url || "/icons/profile-placeholder.svg"}
                             alt="profile"
                             width={56}
                             height={56}

@@ -1,6 +1,13 @@
 import { Request, Response, NextFunction, Router } from "express";
 import { authenticate } from "../middleware/auth.middleware";
-import { getAllPostsByUser, createPost, getPostByUserId } from "../controllers/post.controller";
+import {
+  getAllPosts,
+  createPost,
+  getPostByUserId,
+  getPostById,
+  updatePost,
+  searchPosts,
+} from "../controllers/post.controller";
 
 const router = Router();
 
@@ -10,12 +17,54 @@ const router = Router();
  *   name: Post
  *   description: Post endpoints
  */
+/**
+ * @swagger
+ * /post/search:
+ *   get:
+ *     summary: Search posts by caption
+ *     tags: [Post]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         description: Caption to search for
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Posts fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     format: uuid
+ *                   caption:
+ *                     type: string
+ *                   media_url:
+ *                     type: string
+ *                   ownerId:
+ *                     type: string
+ *                     format: uuid
+ */
+router.get("/search",
+  (req: Request, res: Response, next: NextFunction) => {
+    authenticate(req, res, next);
+  },
+  async (req: Request, res: Response) => {
+    await searchPosts(req, res);
+  }
+)
 
 /**
  * @swagger
  * /post:
  *   get:
- *     summary: Get all posts by user
+ *     summary: Get all posts by self/logged in user
  *     tags: [Post]
  *     responses:
  *       200:
@@ -46,10 +95,9 @@ router.get(
     authenticate(req, res, next);
   },
   async (req: Request, res: Response) => {
-    await getAllPostsByUser(req, res);
+    await getAllPosts(req, res);
   }
 );
-
 /**
  * @swagger
  * /post:
@@ -84,56 +132,59 @@ router.post(
   async (req: Request, res: Response) => {
     await createPost(req, res);
   }
-)
+);
+
 
 /**
  * @swagger
- * /post/{userId}:
- *  get:
- *   summary: Get all posts by user id
- *   tags: [Post]
- *   parameters:
- *    - in: path
- *      name: userId
- *      required: true
- *      description: User ID
- *      schema:
- *       type: string
- *       format: uuid
- *   responses:
- *    200:
- *     description: Posts fetched successfully 
- *     content:
- *      application/json:
- *     schema:
- *      type: array
- *      items:
- *       type: object
- *       properties:
- *        id:
- *         type: string
- *         format: uuid
- *        caption:
- *         type: string
- *        media_url:
- *         type: string 
- *        ownerId: 
- *         type: string
- *         format: uuid
- *    500:
- *     description: Internal server error
- *
+ * /post/{id}:
+ *   get:
+ *     summary: Get a post by post id
+ *     tags: [Post]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Post ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Post fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   format: uuid
+ *                 caption:
+ *                   type: string
+ *                 media_url:
+ *                   type: string
+ *                 ownerId:
+ *                   type: string
+ *                   format: uuid
+ *       400:
+ *         description: Bad request
+ *       404:
+ *         description: Post not found 
+ *       500:
+ *         description: Internal server error
  */
 
 router.get(
-  "/:userId",
+  "/:id",
   (req: Request, res: Response, next: NextFunction) => {
     authenticate(req, res, next);
   },
   async (req: Request, res: Response) => {
-    await getPostByUserId(req, res);
+    await getPostById(req, res);
   }
 );
+
 
 /**
  * @swagger
@@ -170,12 +221,12 @@ router.get(
  */
 
 router.put(
-  "/:postId",
+  "/:id",
   (req: Request, res: Response, next: NextFunction) => {
     authenticate(req, res, next);
   },
   async (req: Request, res: Response) => {
-    await getPostByUserId(req, res);
+    await updatePost(req, res);
   }
 );
 
@@ -209,5 +260,4 @@ router.delete(
     await getPostByUserId(req, res);
   }
 );
-
 export default router;

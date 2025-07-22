@@ -1,6 +1,16 @@
 import { Request, Response, NextFunction, Router } from "express";
 import { authenticate } from "../middleware/auth.middleware";
-import { getUserById, getAllUsers, likeComment, likePost, savePost } from "../controllers/user.controller";
+import {
+  getUserById,
+  getAllUsers,
+  likeComment,
+  likePost,
+  updateUser,
+  deleteSavedPost,
+  deleteLikePost,
+  savePost,
+} from "../controllers/user.controller";
+import { getPostByUserId } from "../controllers/post.controller";
 
 const router = Router();
 
@@ -143,69 +153,69 @@ router.post(
 );
 
 /**
-* @swagger
-* /user/like/post:
-*   post:
-*     summary: Like a post
-*     tags: [User]
-*     requestBody:
-*       required: true
-*       content:
-*         application/json:
-*           schema:
-*             type: object
-*             properties:
-*               id:
-*                 type: string
-*                 format: uuid
-*               userId:
-*                 type: string
-*                 format: uuid
-*     responses:
-*       200:
-*         description: Post liked successfully
-*       404:
-*         description: Post not found
-*       500:
-*         description: Internal server error
-*/
+ * @swagger
+ * /user/like/post:
+ *   post:
+ *     summary: Like a post
+ *     tags: [User]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *                 format: uuid
+ *               userId:
+ *                 type: string
+ *                 format: uuid
+ *     responses:
+ *       200:
+ *         description: Post liked successfully
+ *       404:
+ *         description: Post not found
+ *       500:
+ *         description: Internal server error
+ */
 router.post(
- "/like/post",
- (req: Request, res: Response, next: NextFunction) => {
-   authenticate(req, res, next);
- },
- async (req: Request, res: Response) => {
-   await likePost(req, res);
- }
+  "/like/post",
+  (req: Request, res: Response, next: NextFunction) => {
+    authenticate(req, res, next);
+  },
+  async (req: Request, res: Response) => {
+    await likePost(req, res);
+  }
 );
 
 /**
-* @swagger
-* /user/save/post:
-*   post:
-*     summary: Save a post
-*     tags: [User]
-*     requestBody:
-*       required: true
-*       content:
-*         application/json:
-*           schema:
-*             type: object
-*             properties:
-*               id:
-*                 type: string
-*                 format: uuid
-*               userId:
-*                 type: string
-*                 format: uuid
-*     responses:
-*       200:
-*         description: Post saved successfully
-*       404:
-*         description: Post not found
-*       500:
-*         description: Internal server error
-*/
+ * @swagger
+ * /user/save/post:
+ *   post:
+ *     summary: Like a post
+ *     tags: [User]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *                 format: uuid
+ *               userId:
+ *                 type: string
+ *                 format: uuid
+ *     responses:
+ *       200:
+ *         description: Post liked successfully
+ *       404:
+ *         description: Post not found
+ *       500:
+ *         description: Internal server error
+ */
 router.post(
   "/save/post",
   (req: Request, res: Response, next: NextFunction) => {
@@ -214,6 +224,141 @@ router.post(
   async (req: Request, res: Response) => {
     await savePost(req, res);
   }
- );
- 
+);
+
+/**
+ * @swagger
+ * /user:
+ *   put:
+ *     summary: Update user details
+ *     tags: [User]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *                 format: uuid
+ *               username:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               bio:
+ *                 type: string
+ *               phone_number:
+ *                 type: string
+ *               dp_url:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: User updated successfully
+ *       400:
+ *         description: Bad request
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+
+router.put(
+  "/",
+  (req: Request, res: Response, next: NextFunction) => {
+    authenticate(req, res, next);
+  },
+  async (req: Request, res: Response) => {
+    await updateUser(req, res);
+  }
+);
+
+/**
+ * @swagger
+ * /user/unsave/post:
+ *   post:
+ *     summary: Unsave a post
+ *     tags: [User]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *                 format: uuid
+ *               userId:
+ *                 type: string
+ *                 format: uuid
+ *     responses:
+ *       200:
+ *         description: Post unsaved successfully
+ *       404:
+ *         description: Post not found
+ *       500:
+ *         description: Internal server error
+ */
+
+router.post(
+  "/unsave/post",
+  (req: Request, res: Response, next: NextFunction) => {
+    authenticate(req, res, next);
+  },
+  async (req: Request, res: Response) => {
+    await deleteSavedPost(req, res);
+  }
+);
+
+/**
+ * @swagger
+ * /user/unlike/post:
+ *   post:
+ *     summary: Unlike a post
+ *     tags: [User]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *                 format: uuid
+ *               userId:
+ *                 type: string
+ *                 format: uuid
+ *     responses:
+ *       200:
+ *         description: Post unliked successfully
+ *       404:
+ *         description: Post not found
+ *       500:
+ *         description: Internal server error 
+ */
+
+router.post(
+  "/unlike/post",
+  (req: Request, res: Response, next: NextFunction) => {
+    authenticate(req, res, next);
+  }
+  , async (req: Request, res: Response) => {
+    await deleteLikePost(req, res);
+  }
+);
+
+router.get(
+  "/:id/posts",
+  (req: Request, res: Response, next: NextFunction) => {
+    authenticate(req, res, next);
+  },
+  async (req: Request, res: Response) => {
+    await getPostByUserId(req, res);
+  }
+);
+
 export default router;

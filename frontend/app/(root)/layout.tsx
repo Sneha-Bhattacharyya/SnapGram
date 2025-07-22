@@ -3,6 +3,7 @@ import "../globals.css";
 import TopBar from "@/components/shared/TopBar";
 import LeftSidebar from "@/components/shared/LeftSidebar";
 import Bottombar from "@/components/shared/Bottombar";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,8 +27,8 @@ export default function Layout({
 
           <section className="flex flex-1 h-full">
               {children}
+              <Toaster richColors closeButton position="top-center" />
           </section>
-
           <Bottombar/>
       </div>
   );

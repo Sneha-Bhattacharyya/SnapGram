@@ -45,7 +45,7 @@ model Comment {
   authorId  String
   postId    String
   body      String
-  parentCommentId String?
+  parentCommentId String? @default("")
   parentComment Comment? @relation("ChildComments", fields: [parentCommentId], references: [id]) 
   timestamp DateTime  @default(now())
   author    User      @relation(fields: [authorId], references: [id])
